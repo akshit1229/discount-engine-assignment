@@ -1,6 +1,6 @@
 # Opptra Discount Engine — FDE Intern Assignment
 
-**Live deployment:** _Add your Vercel/Netlify URL here after deploying_
+**Live deployment:** https://discount-engine-assignment-eight.vercel.app/
 
 ---
 
