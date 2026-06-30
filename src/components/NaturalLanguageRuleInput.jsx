@@ -19,7 +19,7 @@ const STATUS = {
   SUCCESS: 'success',
 }
 
-export default function NaturalLanguageRuleInput({ onRuleAdded, apiKey }) {
+export default function NaturalLanguageRuleInput({ onRuleAdded, apiKey, rulesCount = 0 }) {
   const [text, setText] = useState('')
   const [status, setStatus] = useState(STATUS.IDLE)
   const [parsedRule, setParsedRule] = useState(null)
@@ -45,8 +45,8 @@ export default function NaturalLanguageRuleInput({ onRuleAdded, apiKey }) {
 
   function handleConfirm() {
     if (!parsedRule) return
-    // Generate a human-readable rule ID
-    const ruleId = `NL-${Date.now().toString(36).toUpperCase()}`
+    // Sequential ID matching existing rules (RULE-05, RULE-06, …)
+    const ruleId = `RULE-${String(rulesCount + 1).padStart(2, '0')}`
     const newRule = { ...parsedRule, ruleId }
     setAddedRuleId(ruleId)
     onRuleAdded(newRule)

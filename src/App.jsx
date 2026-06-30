@@ -247,6 +247,7 @@ export default function App() {
               <NaturalLanguageRuleInput
                 onRuleAdded={handleRuleAdded}
                 apiKey={apiKey}
+                rulesCount={rules.length}
               />
             </div>
           </div>
