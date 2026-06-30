@@ -1,2 +1,116 @@
-*, *::before, *::after { box-sizing: border-box; }
-body { margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+/* ─── Opptra Discount Engine — Global Styles ─────────────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+/* ─── Reset & Base ─────────────────────────────────────────────────────────── */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  /* Brand */
+  --navy:       #131A48;
+  --navy-light: #1e2760;
+  --orange:     #FF5800;
+  --orange-dim: #ff7a33;
+
+  /* Semantic */
+  --green:      #1e5c2c;
+  --green-bg:   #f0faf2;
+  --green-bd:   #a0d8b0;
+  --amber:      #c07800;
+  --amber-bg:   #fff8e6;
+  --amber-bd:   #f0c060;
+  --red-bg:     #fff0f0;
+  --red-bd:     #f0b0b0;
+
+  /* Neutrals */
+  --surface:    #ffffff;
+  --bg:         #f4f5fa;
+  --border:     #e0e1ea;
+  --border-dim: #CECECE;
+  --text:       #131A48;
+  --text-muted: #64698a;
+  --text-faint: #a0a5bf;
+
+  /* Shadows */
+  --shadow-sm:  0 1px 4px rgba(19,26,72,0.06);
+  --shadow-md:  0 4px 16px rgba(19,26,72,0.10);
+  --shadow-lg:  0 8px 32px rgba(19,26,72,0.12);
+
+  /* Radius */
+  --radius-sm:  4px;
+  --radius-md:  8px;
+  --radius-lg:  12px;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── Animations ────────────────────────────────────────────────────────────── */
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes pulseGreen {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(30, 92, 44, 0.2); }
+  50%       { box-shadow: 0 0 0 6px rgba(30, 92, 44, 0); }
+}
+
+/* ─── Scrollbar ─────────────────────────────────────────────────────────────── */
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-dim); }
+
+/* ─── Utility ───────────────────────────────────────────────────────────────── */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+}
+
+textarea:focus, input:focus {
+  outline: 2px solid var(--navy);
+  outline-offset: 1px;
+}
+
+/* Spinner used in components */
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}

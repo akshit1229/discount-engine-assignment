@@ -6,7 +6,7 @@
  * internal data shapes.
  *
  * Expected rules.csv columns:
- *   rule_id, scope, applies_to, type, value, stackable
+ *   rule_id, scope, applies_to, type, value, stackable, min_cart_value
  *
  * Expected cart.csv columns:
  *   item_id, product, brand, platform, base_price
@@ -17,6 +17,9 @@ import Papa from 'papaparse'
 /**
  * Parses the raw text of rules.csv into an array of DiscountRule objects.
  * Returns { data, errors } where errors is an array of row-level issues.
+ *
+ * Supports scopes: "brand", "platform", "cart"
+ * Cart rules have an optional applies_to and a required min_cart_value.
  */
 export function parseRulesCSV(csvText) {
   const { data: rows, errors: parseErrors } = Papa.parse(csvText.trim(), {
@@ -38,7 +41,6 @@ export function parseRulesCSV(csvText) {
 
     if (!row.rule_id) missing.push('rule_id')
     if (!row.scope) missing.push('scope')
-    if (!row.applies_to) missing.push('applies_to')
     if (!row.type) missing.push('type')
     if (row.value === undefined || row.value === '') missing.push('value')
     if (row.stackable === undefined || row.stackable === '') missing.push('stackable')
@@ -49,8 +51,14 @@ export function parseRulesCSV(csvText) {
     }
 
     const scope = row.scope.trim().toLowerCase()
-    if (scope !== 'brand' && scope !== 'platform') {
-      errors.push(`Row ${rowNum}: scope must be "brand" or "platform", got "${row.scope}"`)
+    if (scope !== 'brand' && scope !== 'platform' && scope !== 'cart') {
+      errors.push(`Row ${rowNum}: scope must be "brand", "platform", or "cart", got "${row.scope}"`)
+      return
+    }
+
+    // Non-cart rules require applies_to
+    if (scope !== 'cart' && !row.applies_to) {
+      errors.push(`Row ${rowNum}: applies_to is required for scope "${scope}"`)
       return
     }
 
@@ -69,13 +77,28 @@ export function parseRulesCSV(csvText) {
     const stackableStr = row.stackable.trim().toLowerCase()
     const stackable = stackableStr === 'true' || stackableStr === '1' || stackableStr === 'yes'
 
+    // Parse min_cart_value for cart-scope rules
+    let minCartValue = null
+    if (scope === 'cart') {
+      const rawMin = row.min_cart_value
+      if (rawMin && rawMin.trim() !== '') {
+        const parsed = parseFloat(rawMin)
+        if (isNaN(parsed) || parsed < 0) {
+          errors.push(`Row ${rowNum}: min_cart_value must be a non-negative number, got "${rawMin}"`)
+          return
+        }
+        minCartValue = parsed
+      }
+    }
+
     data.push({
       ruleId: row.rule_id.trim(),
       scope,
-      appliesTo: row.applies_to.trim(),
+      appliesTo: scope !== 'cart' ? row.applies_to.trim() : '',
       type,
       value,
       stackable,
+      minCartValue,
     })
   })
 
@@ -131,4 +154,39 @@ export function parseCartCSV(csvText) {
   })
 
   return { data, errors }
+}
+
+/**
+ * Normalises a raw cart row object (from PDF or manual entry) into a CartItem.
+ * Fields: product, brand, platform, base_price (or basePrice).
+ * Returns { item, error } — one of them will be null.
+ */
+export function normaliseCartRow(raw, index) {
+  const rowNum = index + 1
+  const product = (raw.product || '').trim()
+  const brand = (raw.brand || '').trim()
+  const platform = (raw.platform || '').trim()
+  const rawPrice = raw.base_price || raw.basePrice || raw['base price'] || ''
+  // Match the first digit and all following digits/commas (handles "Rs.1,299", "1,299", "1299")
+  const priceMatch = String(rawPrice).match(/(\d[\d,]*)/)
+  const priceStr   = priceMatch ? priceMatch[1].replace(/,/g, '') : ''
+  const basePrice  = parseFloat(priceStr)
+
+  if (!product || !brand || !platform) {
+    return { item: null, error: `Row ${rowNum}: missing product, brand, or platform` }
+  }
+  if (isNaN(basePrice) || basePrice <= 0) {
+    return { item: null, error: `Row ${rowNum}: invalid base_price "${rawPrice}"` }
+  }
+
+  return {
+    item: {
+      itemId: `ITEM-${String(index + 1).padStart(2, '0')}`,
+      product,
+      brand,
+      platform,
+      basePrice: Math.round(basePrice),
+    },
+    error: null,
+  }
 }
